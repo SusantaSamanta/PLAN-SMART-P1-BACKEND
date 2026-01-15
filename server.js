@@ -8,6 +8,8 @@ import multer from "multer";
 import connectDB from "./config/mongodb.js";
 import authRouter from './routes/authRoutes.js'
 import userRouter from "./routes/userRoutes.js";
+import adminRouter from "./routes/adminRoutes.js";
+import userJobRoutes from "./routes/userJobRoutes.js";
 
 
 const app = express();
@@ -32,6 +34,8 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/vision/admin", adminRouter);
+app.use("/api/user/job", userJobRoutes);
 app.use(cookieParser());
 
 

@@ -1,7 +1,8 @@
 import { fileUploadOnCloud } from "../config/cloudinaryConfig.js";
 import userModel from "../models/userModel.js";
 import { getUserById } from "../services/authServices.js";
-import { getProfileData, setProfilePic, updateProfileData } from "../services/userDataSetServices.js";
+import { checkProfileData, getProfileData, setCvUrl, setProfilePic, updateProfileData } from "../services/userDataSetServices.js";
+
 
 export const getUserData = async (req, res) => {
     try {
@@ -87,13 +88,13 @@ export const setUserCv = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Not Authorized. Login Again.' });
     if (!req.file)
         return res.status(400).json({ success: false, message: 'Place give an file' });
-    console.log(req.file.path + '.jpg');
+    console.log(req.file.path);
 
     const cloudRes = await fileUploadOnCloud(req.file.path);
     // console.log(cloudRes);
 
     if (cloudRes) {
-        const isUrlSave = await setProfilePic(userId, cloudRes);
+        const isUrlSave = await setCvUrl(userId, cloudRes);
         if (isUrlSave)
             return res.status(200).json({ success: true, message: 'Ok file uploaded.......', url: cloudRes });
         else
@@ -135,6 +136,32 @@ export const getUserProfile = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Sorry api not working, please try again....!', })
     }
 }
+
+
+export const setUserProfileFinal = async (req, res) => {
+    const { userId } = req.body;
+    if (!userId)
+        return res.status(401).json({ success: false, message: 'Not Authorized. Login Again.' });
+
+    const userData = await getUserById(userId);
+    if (!userData)
+        return res.status(401).json({ success: false, message: 'No User Found, login again....!' });
+
+    try {
+        const result = await checkProfileData(userId); // if all fields are contain text then return true 
+        if (result) {
+            return res.status(200).json({ success: true });
+        } else {
+            return res.status(400).json({ success: false, message: 'profile not completed....!' });
+        }
+
+    } catch (err) {
+        console.log(err);
+
+        return res.status(401).json({ success: false, message: 'Sorry api not working, please try again....!', })
+    }
+}
+
 
 
 
