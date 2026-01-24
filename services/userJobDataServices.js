@@ -1,6 +1,7 @@
 import { application } from "express";
 import { JobApplicationModel } from "../models/jobApplicationModel.js";
 import { JobModel } from "../models/jobModel.js";
+import { interviewModel } from "../models/interviewModel.js";
 
 const waitCall = () => {
     return new Promise((resolve, reject) => {
@@ -11,7 +12,7 @@ const waitCall = () => {
 }
 
 export const receiveAllJobProfiles = async () => {
-    // await waitCall(); 
+    await waitCall();
     try {
         const jobsData = await JobModel.find().sort({ createdAt: -1 }); //  it send all newest first job profiles 
         return jobsData;
@@ -140,11 +141,11 @@ export const findAppliedJobs = async (userId) => {
         const ableToApply = [];
 
         applications.forEach(app => {
-            console.log(!app.isInterviewStarted ,
-                app.isInterviewStarted &&
-                app.interviewStartedAt >= oneHourAgo, app._id)
+            // console.log(!app.isInterviewStarted ,
+            //     app.isInterviewStarted &&
+            //     app.interviewStartedAt >= oneHourAgo, app._id)
             if ( //  Interview not started || ( started && 1 hour not passed  )
-                !app.isInterviewStarted || 
+                !app.isInterviewStarted ||
                 app.isInterviewStarted &&
                 app.interviewStartedAt >= oneHourAgo
             ) {
@@ -176,4 +177,117 @@ export const findAppliedJobs = async (userId) => {
 };
 
 
+
+
+export const findInterviewsNotStart = async (userId) => {
+    // await waitCall();
+    try {
+        const interviews = await JobApplicationModel.find({
+            user: userId,
+            isInterviewStarted: false,
+        })
+            .populate("job")
+            .sort({
+                interviewStartedAt: -1, // newest first
+                createdAt: -1           // fallback
+            });
+
+        return interviews;
+    } catch (error) {
+        console.log("findInterviewsNotStart error:", error);
+        return false;
+    }
+};
+
+
+
+export const stepOfStartInterview = async (applicationId) => {
+    // await waitCall();
+
+    //////////    First step : change application data     ////////////
+    try {
+        const app = await JobApplicationModel.findOne({
+            _id: applicationId,
+        });
+        if (!app) {
+            return { success: false, message: 'No application found!' };
+        }
+        if (app.isInterviewStarted) { // if true 
+            return { success: false, message: 'Interview already done.' };
+        }
+        app.isInterviewStarted = true;
+        app.interviewStartedAt = new Date();
+        // app.isInterviewCompleted = false;
+        await app.save();
+
+
+        const interview = await interviewModel.create({
+            application: app._id,
+            job: app.job,
+            user: app.user,
+            whichAttempt: app.attempts,
+            score: 90,
+            isFullyCompleted: true,
+        })
+
+
+        return { success: true, interview };
+
+
+
+
+    } catch (error) {
+
+        console.log("findInterviewsNotStart error:", error);
+        return false;
+    }
+};
+
+
+/*
+
+const app = await JobApplicationModel.findOne({
+    _id: applicationId,
+    });
+    if(!app){
+        return {success: false, message: 'No application found '};
+        }
+        console.log(
+            !app.isInterviewStarted,
+            app.interviewStartedAt
+            ? new Date(app.interviewStartedAt).toLocaleTimeString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+                })
+                : null,
+                new Date(oneHourAgo).toLocaleTimeString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: true,
+                    })
+                    );
+                    
+                    from this app how to only the an if condition is satisfy when  isInterviewStarted==false or interviewStartedAt more then one hour pass from now 
+                    
+                    
+                    */
+
+
+
+
+export const findAllInterviews = async (userId) => {
+
+    try {
+
+    } catch (error) {
+
+        console.log("findInterviewsNotStart error:", error);
+        return false;
+    }
+};
 
