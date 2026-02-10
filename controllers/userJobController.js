@@ -118,7 +118,7 @@ export const startInterview = async (req, res) => {
         return res.status(401).json({ success: false, message: 'No User Found, login again....!' });
 
     try {
-        const result = await stepOfStartInterview(applicationId);
+        const result = await stepOfStartInterview(userId, applicationId);
         if (result.success) {
             return res.status(200).json(result);
         } else {

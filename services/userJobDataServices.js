@@ -2,6 +2,11 @@ import { application } from "express";
 import { JobApplicationModel } from "../models/jobApplicationModel.js";
 import { JobModel } from "../models/jobModel.js";
 import { interviewModel } from "../models/interviewModel.js";
+import { generateText } from "ai";
+import { google } from "@ai-sdk/google";
+import { userDataModel } from "../models/userDataModel.js";
+import { GoogleGenAI } from '@google/genai';
+
 
 const waitCall = () => {
     return new Promise((resolve, reject) => {
@@ -201,7 +206,7 @@ export const findInterviewsNotStart = async (userId) => {
 
 
 
-export const stepOfStartInterview = async (applicationId) => {
+export const stepOfStartInterview = async (userId, applicationId) => {
     // await waitCall();
 
     //////////    First step : change application data     ////////////
@@ -213,7 +218,7 @@ export const stepOfStartInterview = async (applicationId) => {
             return { success: false, message: 'No application found!' };
         }
         if (app.isInterviewStarted) { // if true 
-            return { success: false, message: 'Interview already done.' };
+            // return { success: false, message: 'Interview already done.' };
         }
         app.isInterviewStarted = true;
         app.interviewStartedAt = new Date();
@@ -231,6 +236,12 @@ export const stepOfStartInterview = async (applicationId) => {
         })
 
 
+
+        const questions = await generateInterviewQuestions(userId, app.job)
+        console.log(questions);
+
+
+
         return { success: true, interview };
 
 
@@ -242,6 +253,92 @@ export const stepOfStartInterview = async (applicationId) => {
         return false;
     }
 };
+
+
+const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
+});
+const generateInterviewQuestions = async (userId, jobId) => {
+    const { profileData, cvUrl, fullyUpdated } =
+        await userDataModel.findOne({ user: userId });
+
+    if (!fullyUpdated) {
+        return { success: false, message: 'Your profile is not complete' };
+    }
+    const { role, title, requiredSkills } = await JobModel.findOne({ _id: jobId });
+    console.log(role, title, requiredSkills)
+    
+    const userData = JSON.parse(profileData);
+
+    // Convert Cloudinary raw PDF → image (page 1)
+    const cvImageUrl = cvUrl
+        .replace("/raw/upload/", "/image/upload/")
+        .replace("/image/upload/", "/image/upload/pg_1,w_1200,q_auto/");
+
+
+
+
+    /*
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        {
+                            text: `
+                                You are a professional technical interviewer.
+    
+                                Input:
+                                - Candidate profile data (JSON):
+                                ${JSON.stringify(userData)}
+    
+                                - Candidate CV (image)
+    
+                                Tasks:
+                                1. Read and understand the candidate CV.
+                                2. Analyze the candidate profile data.
+                                3. Internally identify skills and education.
+                                4. Generate exactly 10 interview questions suitable for a fresher.
+                                5. Questions must be based only on the candidate profile.
+    
+                                STRICT RULES:
+                                - Return ONLY a valid JSON array.
+                                - Do NOT include explanations.
+                                - Do NOT include headings.
+                                - Do NOT include any text outside JSON.
+                                - Do NOT number questions outside the strings.
+    
+                                Output format example:
+                                [
+                                  "Question 1",
+                                  "Question 2",
+                                  "Question 3"
+                                ]
+                            `
+                        },
+                        // {
+                        //     fileData: {
+                        //         mimeType: "image/png",
+                        //         fileUri: cvImageUrl
+                        //     }
+                        // }
+                    ]
+                }
+            ]
+        });
+        
+        if (!response.text) {
+            return { success: false, message: 'API not working' };
+        }
+        
+        return {
+            success: true,
+            questions: JSON.parse(response.text)
+        };
+        */
+};
+
 
 
 /*
@@ -290,4 +387,9 @@ export const findAllInterviews = async (userId) => {
         return false;
     }
 };
+
+
+
+
+
 

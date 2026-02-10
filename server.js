@@ -13,7 +13,7 @@ import userJobRoutes from "./routes/userJobRoutes.js";
 
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 connectDB();
 
 app.use(express.json());
@@ -29,7 +29,8 @@ app.use(cors(
 
 
 //API Endpoints
-app.get("/", (req, res) => {
+app.get("/", (req, res) => { 
+  console.log(req.url);
   res.send("API working Fine");
 });
 app.use("/api/auth", authRouter);
