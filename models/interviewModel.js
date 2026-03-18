@@ -35,7 +35,7 @@ const interviewSchema = new mongoose.Schema(
             default: false,
         },
         questions:{
-            type: String,
+            type: Array,
             default: 'Tell me about your self',
         },
         // inetrviwe
