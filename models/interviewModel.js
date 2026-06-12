@@ -20,26 +20,32 @@ const interviewSchema = new mongoose.Schema(
             ref: "user",
             required: true,
         },
-        
+
         whichAttempt: {
             type: Number,
             required: true,
         },
-        
-        score: {
-            type: Number,
-            required: true,
+
+        // score: {
+        //     type: Number,
+        //     required: true,
+        // },
+        review: {
+            type: Array,
+            default: "",
         },
         isFullyCompleted: {
             type: Boolean,
             default: false,
         },
-        questions:{
+        questions: {
             type: Array,
             default: 'Tell me about your self',
         },
-        // inetrviwe
-
+        conversation: {
+            type: Array,
+            default: 'Hello how are you'
+        },
     },
     {
         timestamps: true,

@@ -1,7 +1,7 @@
 import express from 'express';
 import userAuth from '../middleware/userAuth.js';
 import { getAllJobProfile, setJobApplication, getAppliedJobs,
-    getPendingInterviews, startInterview,
+    getPendingInterviews, startInterview, endInterview,
     getCompletedInterview
  } from '../controllers/userJobController.js';
 const userJobRoutes = express.Router();
@@ -13,6 +13,7 @@ userJobRoutes.post('/set-job-application', userAuth, setJobApplication);
 userJobRoutes.get('/get-applied-jobs', userAuth, getAppliedJobs);
 userJobRoutes.get('/get-pending-interviews', userAuth, getPendingInterviews); // give all job application in which isInterviewStart is false 
 userJobRoutes.post('/start-interview', userAuth, startInterview); 
+userJobRoutes.post('/end-interview', userAuth, endInterview); 
 userJobRoutes.post('/get-completed-interviews', userAuth, getCompletedInterview); // give all interviews for that user with job details 
 
 export default userJobRoutes;

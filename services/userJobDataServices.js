@@ -46,8 +46,7 @@ export const applyForJob = async (userId, jobId) => {
                 user: userId,
                 attempts: 1,
                 interviewStartedAt: now,
-                // isInterviewStarted: false,  by default     
-                // interviewStartedAt: now,
+                // isInterviewStarted: false,  by default
             });
             return { jobId, _id, attempts };
         }
@@ -207,8 +206,8 @@ export const findInterviewsNotStart = async (userId) => {
 
 
 export const stepOfStartInterview = async (userId, applicationId) => {
-    await waitCall();
-    console.log(applicationId)
+    // await waitCall();
+    // console.log(applicationId)
     //////////    First step : change application data     ////////////
     try {
         const app = await JobApplicationModel.findOne({
@@ -232,8 +231,8 @@ export const stepOfStartInterview = async (userId, applicationId) => {
             job: app.job,
             user: app.user,
             whichAttempt: app.attempts,
-            score: 0,
-            isFullyCompleted: true,
+            // score: 0,
+            // isFullyCompleted: false,
         })
 
 
@@ -242,7 +241,7 @@ export const stepOfStartInterview = async (userId, applicationId) => {
         const questions = await generateInterviewQuestions(userId, app.job)
 
         if (questions.success) { // it gemini generate question then save it to DB 
-            console.log(questions.questions);
+            // console.log(questions.questions);
             interview.questions = questions.questions;
             interview.save();
             return { success: true, interview };
@@ -251,7 +250,7 @@ export const stepOfStartInterview = async (userId, applicationId) => {
         }
 
 
- 
+
 
     } catch (error) {
 
@@ -379,38 +378,148 @@ const generateInterviewQuestions = async (userId, jobId) => {
 */
 
 
-/*
+// export const stepOfEndInterview = async (userId, interviewId, conversation) => {
+//     try {
+//         const interview = await interviewModel.findOne({ _id: interviewId });
+//         // console.log(interview)
+//         if (!interview) return { success: false, message: "interview end error" }
+//         interview.conversation = conversation;
+//         interview.isFullyCompleted = true;
+//         interview.review = "Avery this is good but you need to improve communication skills.";
+//         interview.score = 60;
+//         interview.save();
 
-const app = await JobApplicationModel.findOne({
-    _id: applicationId,
-    });
-    if(!app){
-        return {success: false, message: 'No application found '};
+//         return { success: true, message: "interview end error" }
+
+//     } catch (error) {
+//         console.log("interview end error", error);
+//         return { success: false, message: "interview end error" }
+//     }
+// }
+
+// // jhvh
+
+export const stepOfEndInterview = async (
+    userId,
+    interviewId,
+    conversation
+) => {
+    try {
+
+        const interview = await interviewModel.findById(interviewId);
+
+        if (!interview) {
+            return {
+                success: false,
+                message: "Interview not found"
+            };
         }
-        console.log(
-            !app.isInterviewStarted,
-            app.interviewStartedAt
-            ? new Date(app.interviewStartedAt).toLocaleTimeString("en-IN", {
-                timeZone: "Asia/Kolkata",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: true,
-                })
-                : null,
-                new Date(oneHourAgo).toLocaleTimeString("en-IN", {
-                    timeZone: "Asia/Kolkata",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: true,
-                    })
-                    );
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `
+            You are an expert technical interviewer.
                     
-                    from this app how to only the an if condition is satisfy when  isInterviewStarted==false or interviewStartedAt more then one hour pass from now 
+            Analyze the following interview conversation and evaluate the candidate.
                     
+            Conversation:
+            ${JSON.stringify(conversation, null, 2)}
                     
-                    */
+            Return ONLY a valid JSON object.
+                    
+            Required Format:
+                    
+            {
+              "overallScore": 0,
+              "communicationScore": 0,
+              "technicalScore": 0,
+              "strengths": [],
+              "areasOfImprovement": [],
+              "feedback": ""
+            }
+                    
+            Rules:
+            - Scores must be between 0 and 10.
+            - strengths must be an array of strings.
+            - areasOfImprovement must be an array of strings.
+            - feedback must be a short paragraph.
+            - strengths areasOfImprovement must contain SHORT summary points only. feedback must be a short overall summary. each must be with in 20 word
+            - Return ONLY JSON.
+            - Do NOT use markdown.
+            - Do NOT wrap response inside \`\`\`json.
+            - Do NOT include explanations.
+            `
+        });
+
+        // Gemini response text
+        let rawText = response.text;
+
+        // Some SDK versions use response.text()
+        if (typeof rawText === "function") {
+            rawText = response.text();
+        }
+
+        console.log("Gemini Raw Response:");
+        console.log(rawText);
+
+        let review;
+
+        try {
+
+            // Remove markdown fences if Gemini still returns them
+            const cleanedText = rawText
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
+
+            // Extract only JSON object
+            const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+
+            if (!jsonMatch) {
+                throw new Error("No valid JSON found in Gemini response");
+            }
+
+            review = JSON.parse(jsonMatch[0]);
+
+        } catch (parseError) {
+
+            console.log("Gemini JSON Parse Error:", parseError);
+
+            review = {
+                overallScore: 0,
+                communicationScore: 0,
+                technicalScore: 0,
+                strengths: [],
+                areasOfImprovement: [
+                    "Unable to generate review"
+                ],
+                feedback: "Review generation failed."
+            };
+        }
+
+        interview.conversation = conversation;
+        interview.review = review;
+        interview.isFullyCompleted = true;
+
+        await interview.save();
+
+        return {
+            success: true,
+            review,
+            message: "Interview completed successfully"
+        };
+
+    } catch (error) {
+
+        console.log("Interview End Error:", error);
+
+        return {
+            success: false,
+            message: "Interview End Error"
+        };
+    }
+};
+
 
 
 
@@ -425,6 +534,18 @@ export const findAllInterviews = async (userId) => {
         return false;
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

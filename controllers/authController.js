@@ -73,7 +73,7 @@ export const register = async (req, res) => {
 //Function for user login
 export const login = async (req, res) => {
   const { email, password } = req.body;
-
+  console.log(email);
   if (!email || !password) {
     return res.status(400).json({
       success: false,
