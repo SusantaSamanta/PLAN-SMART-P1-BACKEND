@@ -2,7 +2,7 @@
 /////////////////    All below fun are for jod routes //////////////////
 
 import { getUserById } from "../services/authServices.js";
-import { applyForJob, findAllInterviews, findAppliedJobs, findInterviewsNotStart, receiveAllJobProfiles, stepOfEndInterview, stepOfStartInterview } from "../services/userJobDataServices.js";
+import { applyForJob, findAllCompletedInterviews, findAppliedJobs, findInterviewsNotStart, receiveAllJobProfiles, stepOfEndInterview, stepOfStartInterview } from "../services/userJobDataServices.js";
 
 
 
@@ -133,6 +133,7 @@ export const startInterview = async (req, res) => {
 
 export const endInterview = async (req, res) => {
     const { userId, interviewId, conversation } = req.body;
+    console.log(interviewId, conversation, "route")
     if (!userId)
         return res.status(401).json({ success: false, message: 'Not Authorized. Login Again.' });
 
@@ -157,7 +158,7 @@ export const endInterview = async (req, res) => {
 
 
 export const getCompletedInterview = async (req, res) => {
-    const { userId, applicationId } = req.body;
+    const { userId } = req.body;
     if (!userId)
         return res.status(401).json({ success: false, message: 'Not Authorized. Login Again.' });
 
@@ -166,7 +167,7 @@ export const getCompletedInterview = async (req, res) => {
         return res.status(401).json({ success: false, message: 'No User Found, login again....!' });
 
     try {
-        const result = await findAllInterviews(userId, applicationId);
+        const result = await findAllCompletedInterviews(userId);
         if (result.success) {
             return res.status(200).json(result);
         } else {

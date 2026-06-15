@@ -17,7 +17,7 @@ const waitCall = () => {
 }
 
 export const receiveAllJobProfiles = async () => {
-    await waitCall();
+    // await waitCall();
     try {
         const jobsData = await JobModel.find().sort({ createdAt: -1 }); //  it send all newest first job profiles 
         return jobsData;
@@ -219,7 +219,7 @@ export const stepOfStartInterview = async (userId, applicationId) => {
         if (app.isInterviewStarted) { // if true 
             // return { success: false, message: 'Interview already done.' };
         }
-        // app.isInterviewStarted = true;
+        app.isInterviewStarted = true;
         app.interviewStartedAt = new Date();
         app.attempts = app.attempts + 1;
         // app.isInterviewCompleted = false;
@@ -244,6 +244,7 @@ export const stepOfStartInterview = async (userId, applicationId) => {
             // console.log(questions.questions);
             interview.questions = questions.questions;
             interview.save();
+            console.log(interview._id, 'first');
             return { success: true, interview };
         } else {
             return { success: false, message: "Some think wrong AI gent not generate questions..!" };
@@ -271,27 +272,27 @@ const generateInterviewQuestions = async (userId, jobId) => {
         return { success: false, message: 'Your profile is not complete' };
     }
     const { role, title, requiredSkills } = await JobModel.findOne({ _id: jobId });
-    console.log(role, title, requiredSkills);
+    // console.log(role, title, requiredSkills);
 
     const userData = JSON.parse(profileData);
 
     // Convert Cloudinary raw PDF → image (page 1)
-    const cvImageUrl = cvUrl
-        .replace("/raw/upload/", "/image/upload/")
-        .replace("/image/upload/", "/image/upload/pg_1,w_1200,q_auto/");
+    // const cvImageUrl = cvUrl
+    //     .replace("/raw/upload/", "/image/upload/")
+    //     .replace("/image/upload/", "/image/upload/pg_1,w_1200,q_auto/");
 
 
 
 
 
-    /* const response = await ai.models.generateContent({
-         model: "gemini-2.5-flash",
-         contents: [
-             {
-                 role: "user",
-                 parts: [
-                     {
-                         text: `
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+            {
+                role: "user",
+                parts: [
+                    {
+                        text: `
                                  You are a professional technical interviewer.
      
                                  Input:
@@ -325,40 +326,50 @@ const generateInterviewQuestions = async (userId, jobId) => {
                                    "Question 3"
                                  ]
                              `
-                     },
-                     // {
-                     //     fileData: {
-                     //         mimeType: "image/png",
-                     //         fileUri: cvImageUrl
-                     //     }
-                     // }
-                 ]
-             }
-         ]
-     });*/
-
-    const response = {
-        text: [
-            "You've listed Python as a skill. Can you explain the difference between a list and a tuple in Python and describe a scenario where you would prefer using one over the other?",
-            'Given your interest in AI, can you briefly explain the core difference between supervised and unsupervised machine learning algorithms?',
-            'When working with data for machine learning, data preprocessing is crucial. What are some common challenges you might encounter during this phase, and how would you approach handling them?',
-            'You mentioned familiarity with OpenCV. Can you describe a basic image processing operation you can perform with OpenCV and its potential application in AI?',
-            "How would you typically handle missing values in a dataset using Python's Pandas library?",
-            'What is the primary purpose of NumPy in scientific computing with Python, and can you give an example of a common operation you would use it for?',
-            'Can you name at least two different libraries in Python that are commonly used for data visualization, and describe a type of plot you would generate with each?',
-            'From your BCA and MCA studies, how do you think your academic background has prepared you to understand and apply machine learning concepts?',
-            'If you were to build a simple classification model using Scikit-learn, what would be the typical sequence of steps you would follow from data loading to model evaluation?',
-            "Considering the required skill of 'strong Python programming', can you explain what a decorator is in Python and provide a simple example of its use?"
+                    },
+                    // {
+                    //     fileData: {
+                    //         mimeType: "image/png",
+                    //         fileUri: cvImageUrl
+                    //     }
+                    // }
+                ]
+            }
         ]
-    }
+    });
+
     if (!response.text) {
-        return { success: false, message: 'API not working' };
+        return {
+            success: true, 
+            questions: [
+                "Tell me about yourself.",
+                "What are your strengths?",
+                "What is your biggest weakness?",
+                "Why do you want this job?",
+                "Where do you see yourself in 5 years?",
+                "Describe a challenge you faced and how you handled it.",
+                "How do you manage your time?",
+                "How do you handle pressure at work?",
+                "What motivates you to do your best?",
+                "How do you prioritize your tasks?",
+                "Describe a situation where you worked in a team.",
+                "How do you deal with conflict in a team?",
+                "Tell me about a time you made a mistake.",
+                "How do you learn new skills?",
+                "What does good communication mean to you?",
+                "How do you handle feedback or criticism?",
+                "What are your career goals?",
+                "Why should we hire you?",
+                "What makes you different from other candidates?",
+                "Do you have any questions for us?"
+            ]
+        };
     }
 
     return {
         success: true,
-        questions: response.text
-        // questions: JSON.parse(response.text)
+        // questions: response.text
+        questions: JSON.parse(response.text)
     };
 
 };
@@ -378,35 +389,11 @@ const generateInterviewQuestions = async (userId, jobId) => {
 */
 
 
-// export const stepOfEndInterview = async (userId, interviewId, conversation) => {
-//     try {
-//         const interview = await interviewModel.findOne({ _id: interviewId });
-//         // console.log(interview)
-//         if (!interview) return { success: false, message: "interview end error" }
-//         interview.conversation = conversation;
-//         interview.isFullyCompleted = true;
-//         interview.review = "Avery this is good but you need to improve communication skills.";
-//         interview.score = 60;
-//         interview.save();
 
-//         return { success: true, message: "interview end error" }
-
-//     } catch (error) {
-//         console.log("interview end error", error);
-//         return { success: false, message: "interview end error" }
-//     }
-// }
-
-// // jhvh
-
-export const stepOfEndInterview = async (
-    userId,
-    interviewId,
-    conversation
-) => {
+export const stepOfEndInterview = async (userId, interviewId, conversation) => {
     try {
-
-        const interview = await interviewModel.findById(interviewId);
+        console.log(interviewId, 'id', conversation);
+        const interview = await interviewModel.findOne({ _id: interviewId });
 
         if (!interview) {
             return {
@@ -522,20 +509,39 @@ export const stepOfEndInterview = async (
 
 
 
-
-
-export const findAllInterviews = async (userId) => {
-
+export const findAllCompletedInterviews = async (userId) => {
     try {
+        const interviews = await interviewModel.find(
+            {
+                user: userId,
+                isFullyCompleted: true,
+            },
+            {
+                _id: 1,
+                job: 1,
+                whichAttempt: 1,
+                review: 1,
+                createdAt: 1,
+            })
+            .populate({
+                path: "job",
+                select: "title company companyLogo"
+            })
+            .sort({ createdAt: -1 });
+
+        return {
+            success: true,
+            interviews,
+        };
 
     } catch (error) {
-
-        console.log("findInterviewsNotStart error:", error);
-        return false;
+        console.log("findAllCompletedInterviews error:", error);
+        return {
+            success: false,
+            message: "not able to find completed interviews",
+        };
     }
 };
-
-
 
 
 

@@ -14,7 +14,7 @@ userJobRoutes.get('/get-applied-jobs', userAuth, getAppliedJobs);
 userJobRoutes.get('/get-pending-interviews', userAuth, getPendingInterviews); // give all job application in which isInterviewStart is false 
 userJobRoutes.post('/start-interview', userAuth, startInterview); 
 userJobRoutes.post('/end-interview', userAuth, endInterview); 
-userJobRoutes.post('/get-completed-interviews', userAuth, getCompletedInterview); // give all interviews for that user with job details 
+userJobRoutes.get('/get-completed-interviews', userAuth, getCompletedInterview); // give all interviews for that user with job details 
 
 export default userJobRoutes;
 
