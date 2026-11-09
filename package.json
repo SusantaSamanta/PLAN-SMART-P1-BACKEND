@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "interview management system",
   "type": "module",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "server": "nodemon server.js",
-    "dev": "node --watch server.js"
+    "start": "node index.js",
+    "server": "nodemon index.js",
+    "dev": "node --watch index.js"
   },
   "author": "",
   "license": "ISC",

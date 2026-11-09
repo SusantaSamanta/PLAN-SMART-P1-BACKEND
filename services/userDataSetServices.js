@@ -21,9 +21,17 @@ export const updateProfileData = async (userId, profileData) => {
 export const getProfileData = async (userId) => {
 
     try {
-        const { profileData, fullyUpdated, updatedAt, profilePicUrl, cvUrl } = await userDataModel.findOne(
-            { user: userId }, // find by user field
-        );
+        const profile = await userDataModel.findOne({
+            user: userId,
+        });
+
+        // Check if profile exists
+        if (!profile) {
+            return null;
+        }
+
+        const { profileData, fullyUpdated, updatedAt, profilePicUrl, cvUrl } = profile;
+        
         return {
             profileData: JSON.parse(profileData),
             fullyUpdated,

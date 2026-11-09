@@ -1,0 +1,11 @@
+node_modules
+.env
+// .env.*
+// .example.env
+.git
+.gitignore
+.vscode
+Dockerfile
+.dockerignore
+npm-debug.log*
+mail.html

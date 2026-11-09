@@ -65,7 +65,7 @@ export const setUserProfilePic = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Not Authorized. Login Again.' });
     if (!req.file)
         return res.status(400).json({ success: false, message: 'Place give an file' });
-    console.log(req.file.path + '.jpg');
+    // console.log(req.file.path + '.jpg');
 
     const cloudRes = await fileUploadOnCloud(req.file.path);
     // console.log(cloudRes);
@@ -88,7 +88,7 @@ export const setUserCv = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Not Authorized. Login Again.' });
     if (!req.file)
         return res.status(400).json({ success: false, message: 'Place give an file' });
-    console.log(req.file.path);
+    // console.log(req.file.path);
 
     const cloudRes = await fileUploadOnCloud(req.file.path);
     // console.log(cloudRes);

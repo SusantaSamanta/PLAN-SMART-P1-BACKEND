@@ -3,12 +3,9 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import transporter from "../config/nodemailer.js";
 
-
 //Function for user registration
 export const register = async (req, res) => {
-  console.log("Register endpoint hit");
   const { name, email, password } = req.body;
-  console.log("Request body:", req.body);
 
   //Check the data is exists or not
   if (!name || !email || !password) {
@@ -35,9 +32,7 @@ export const register = async (req, res) => {
     });
 
     //Save the user
-    console.log("Saving user to database...");
     await user.save();
-    console.log("User saved successfully.");
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
@@ -60,7 +55,6 @@ export const register = async (req, res) => {
     // await transporter.sendMail(mailOptions);
 
     //User successfylly register
-    console.log("Registration successful. Sending response.");
     return res.status(201).json({ success: true });
   } catch (error) {
     console.error("Error during registration:", error);
@@ -73,7 +67,7 @@ export const register = async (req, res) => {
 //Function for user login
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log(email);
+  // console.log(email);
   if (!email || !password) {
     return res.status(400).json({
       success: false,
@@ -90,6 +84,12 @@ export const login = async (req, res) => {
         message: "Invalid email or password.",
       });
     }
+    // if (!user.isAccountVerified) {
+    //   return res.status(401).json({
+    //     success: false,
+    //     message: "Invalid email or password.",
+    //   });
+    // }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
@@ -298,21 +298,8 @@ export const resetPassword = async (req, res) => {
 
 
 
-
-
-
-
-const waitCall = () => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve()
-    }, 4000);
-  })
-}
-
-
 export const checkUseLogin = async (req, res) => {
-  console.log(req.url);
+  // console.log(req.url);
   try {
     if (req.body.userId) {
       const { name, email } = await userModel.findOne({ _id: req.body.userId })
