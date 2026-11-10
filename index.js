@@ -27,11 +27,18 @@ app.use(cors(
 ));  // use for connect frontend and backend
 
 
-//API Endpoints
-app.get("/", (req, res) => { 
-  console.log(req.url);
-  res.send("API working Fine");
+// async function wait() {
+//   return new Promise((resolve) => {
+//     setTimeout(resolve, 6000);
+//   });
+// }
+app.get('/', async (req, res) => {
+  // console.log('home', req.url);
+  // await wait();
+  return res.status(200).json({ success: true, stats: "Server running...." });
 });
+
+//API Endpoints
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/vision/admin", adminRouter);

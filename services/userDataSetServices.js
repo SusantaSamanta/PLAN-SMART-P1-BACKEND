@@ -81,14 +81,14 @@ export const setCvUrl = async (userId, url) => {
 export const checkProfileData = async (userId) => {
     try {
         const userData = await userDataModel.findOne({ user: userId });
-
         if (!userData) return false;
-
+        
         const {
             profileData,
             profilePicUrl,
             cvUrl,
         } = userData;
+        console.log(userData.cvUrl)
 
         // Parse profileData JSON
         const parsedProfile = JSON.parse(profileData);
@@ -115,14 +115,14 @@ export const checkProfileData = async (userId) => {
             !profilePicUrl.includes("dummyProfile");
 
         // CV must exist
-        const hasCv = Boolean(cvUrl);
+        // const hasCv = Boolean(cvUrl);
 
         // Final check
         const isComplete =
             requiredProfileFields.every(Boolean) &&
-            hasSkills &&
-            hasProfilePic &&
-            hasCv;
+            hasSkills 
+            // hasProfilePic 
+            // hasCv;
 
         if (isComplete && !userData.fullyUpdated) {
             userData.fullyUpdated = true;
